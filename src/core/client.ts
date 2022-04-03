@@ -16,7 +16,7 @@ import {
 import { Client, Message } from 'discord.js'
 import { errors } from '.'
 import { ConnectionHandler } from '../handlers'
-import { CommandArgs, msgHelper, stalkHelper } from '../helpers'
+import { CommandArgs, msgHelper, stalkHelper, userHelper } from '../helpers'
 import updateStats from '../crons/memberstats'
 
 /**
@@ -90,6 +90,8 @@ export default class BotClient extends Client {
     this.client.on('guildBanAdd', () => updateStats(this.client))
     this.client.on('guildMemberAdd', () => updateStats(this.client))
     this.client.on('guildMemberRemove', () => updateStats(this.client))
+    this.client.on('guildMemberUpdate', (oldMember, newMember) => userHelper
+      .handleChange(this.client, oldMember, newMember))
     this.client.on('roleUpdate', () => updateStats(this.client))
     // this.client.on('voiceStateUpdate', this.voiceStateUpdate)
     this.client.on('message', msg => this.message(msg))
@@ -156,7 +158,7 @@ export default class BotClient extends Client {
       ] // (TICKETS, MOD, ADMIN)
       if (!ignoredCategories.includes(<string>message.channel.parentID)) await msgHelper.updateMessagesCount()
       const stalkedUsers = await stalkHelper.retrieveStalkedUsers()
-      if (stalkedUsers.includes(message.author.id)) stalkHelper.handleStalk(this.client, message)    
+      if (stalkedUsers.includes(message.author.id)) stalkHelper.handleStalk(this.client, message)
       const { commands, prefix } = this
 
       const isValidCommandString = (
